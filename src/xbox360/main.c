@@ -17,6 +17,9 @@
 static char games[MAX_GAMES][GAME_NAME_SIZE];
 static uint32_t game_count = 0;
 
+static uint32_t selected_game = 0;
+static bool selection_confirmed = false;
+
 static bool is_jar(const char *name)
 {
     const char *ext = strrchr(name, '.');
