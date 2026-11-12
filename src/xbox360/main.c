@@ -168,7 +168,9 @@ int main(void)
         char debug[80];
 
         snprintf(debug, sizeof(debug),
-                 "CONTROLLER: 0x%04X", current_buttons);
+         "BTN: 0x%04X  A FLAG: %u",
+         current_buttons,
+         selection_confirmed ? 1 : 0);
 
         xsdk_text_draw(
             40, 195, 1, 0xFFFFFFFF, debug
