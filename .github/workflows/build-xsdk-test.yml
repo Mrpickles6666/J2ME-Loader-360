@@ -36,7 +36,7 @@ jobs:
           PREFIX="$HOME/xsdk-gcc" \
           WORK="$HOME/xsdk-gcc-work" \
           JOBS=2 \
-          tools/toolchain/build.sh
+          bash tools/toolchain/build.sh
 
       - name: Build glslang
         run: |
