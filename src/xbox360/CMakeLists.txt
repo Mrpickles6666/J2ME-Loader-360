@@ -17,5 +17,5 @@ target_compile_options(j2me_loader_360 PRIVATE
 
 xsdk_add_xex(j2me_loader_360
     NAME "J2ME-Loader-360"
-    VERSION 0.1.0
+    VERSION 0.1.0.0
 )
