@@ -100,8 +100,31 @@ int main(void)
         INPUT_STATE input = {0};
 
         if (XamInputGetState(0, 0, &input) == ERROR_SUCCESS) {
-            if (input.gamepad.buttons & INPUT_GAMEPAD_BACK)
-                running = false;
+           uint16_t buttons = input.gamepad.buttons;
+            if (game_count > 0) {
+    if ((buttons & INPUT_GAMEPAD_DPAD_DOWN) &&
+        !(previous_buttons & INPUT_GAMEPAD_DPAD_DOWN)) {
+        if (selected_game < game_count - 1)
+            selected_game++;
+    }
+
+    if ((buttons & INPUT_GAMEPAD_DPAD_UP) &&
+        !(previous_buttons & INPUT_GAMEPAD_DPAD_UP)) {
+        if (selected_game > 0)
+            selected_game--;
+    }
+}
+
+if ((buttons & INPUT_GAMEPAD_A) &&
+    !(previous_buttons & INPUT_GAMEPAD_A)) {
+    if (game_count > 0)
+        selection_confirmed = true;
+}
+
+if (buttons & INPUT_GAMEPAD_BACK)
+    running = false;
+
+previous_buttons = buttons;
         }
 
         if (!running)
@@ -136,8 +159,19 @@ xsdk_text_draw(
                  (unsigned)game_count);
 
         xsdk_text_draw(
-            40, 175, 1, 0xFFFFFF00, status
-        );
+    40, 175, 1, 0xFFFFFF00, status
+);
+
+if (selection_confirmed && game_count > 0) {
+    char message[100];
+
+    snprintf(message, sizeof(message),
+             "SELECTED: %s", games[selected_game]);
+
+    xsdk_text_draw(
+        40, 205, 1, 0xFF80FF80, message
+    );
+}
 
         if (game_count == 0) {
             xsdk_text_draw(
@@ -152,10 +186,14 @@ xsdk_text_draw(
             snprintf(line, sizeof(line),
                      "%u. %s", (unsigned)(i + 1), games[i]);
 
-            xsdk_text_draw(
-                60, 225 + (int32_t)i * 24,
-                1, 0xFFFFFFFF, line
-            );
+            uint32_t color = (i == selected_game)
+    ? 0xFFFFFF00
+    : 0xFFFFFFFF;
+
+xsdk_text_draw(
+    60, 225 + (int32_t)i * 24,
+    1, color, line
+);
         }
 
         xsdk_text_draw(
