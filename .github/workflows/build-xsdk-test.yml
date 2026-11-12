@@ -1,1 +1,79 @@
 
+name: Build Xbox 360 Hello World
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/build-xsdk-test.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential bison flex texinfo \
+            libgmp-dev libmpfr-dev libmpc-dev \
+            curl xz-utils patch python3 cmake ninja-build git
+
+      - name: Download XSDK
+        run: |
+          git clone https://github.com/xenosworks/xsdk.git "$HOME/xsdk"
+
+      - name: Build Xbox 360 toolchain
+        run: |
+          cd "$HOME/xsdk"
+          PREFIX="$HOME/xsdk-gcc" \
+          WORK="$HOME/xsdk-gcc-work" \
+          JOBS=2 \
+          tools/toolchain/build.sh
+
+      - name: Build glslang
+        run: |
+          git clone --depth 1 --branch xenon \
+            https://github.com/xenosworks/glslang-xenon.git \
+            "$HOME/glslang-xenon"
+
+          cd "$HOME/glslang-xenon"
+          python3 update_glslang_sources.py
+
+          cmake -S "$HOME/glslang-xenon" \
+            -B "$HOME/glslang-xenon/build" \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_OPT=ON \
+            -DSPIRV_SKIP_EXECUTABLES=ON \
+            -DGLSLANG_TESTS=OFF
+
+          cmake --build "$HOME/glslang-xenon/build"
+
+          cp "$HOME/glslang-xenon/build/StandAlone/glslang" \
+            "$HOME/xsdk-gcc/bin/"
+
+      - name: Build XSDK
+        run: |
+          cd "$HOME/xsdk"
+          make -j2 TOOLCHAIN="$HOME/xsdk-gcc/bin/powerpc-xsdk-elf-"
+
+      - name: Build Hello World XEX
+        run: |
+          cd "$HOME/xsdk"
+          make samples TOOLCHAIN="$HOME/xsdk-gcc/bin/powerpc-xsdk-elf-"
+
+      - name: Upload Xbox 360 XEX
+        uses: actions/upload-artifact@v4
+        with:
+          name: Xbox360-Hello-World
+          path: /home/runner/xsdk/build/samples/hello/hello.xex
+          if-no-files-found: error
+
