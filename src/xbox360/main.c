@@ -35,7 +35,7 @@ static void scan_games(void)
 {
     game_count = 0;
 
-    DIR *dir = opendir("usb:/J2ME/");
+    DIR *dir = opendir("game:\\");
 
     if (!dir) {
         xsdk_log_write("J2ME: USB/J2ME folder not found");
