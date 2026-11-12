@@ -1,5 +1,5 @@
 
-name: Build Xbox 360 Hello World
+name: Build J2ME-Loader-360
 
 on:
   workflow_dispatch:
@@ -8,6 +8,7 @@ on:
       - main
     paths:
       - ".github/workflows/build-xsdk-test.yml"
+      - "src/xbox360/**"
 
 jobs:
   build:
@@ -65,15 +66,19 @@ jobs:
           cd "$HOME/xsdk"
           make -j2 TOOLCHAIN="$HOME/xsdk-gcc/bin/powerpc-xsdk-elf-"
 
-      - name: Build Hello World XEX
+      - name: Compile J2ME-Loader-360
         run: |
-          cd "$HOME/xsdk"
-          make samples TOOLCHAIN="$HOME/xsdk-gcc/bin/powerpc-xsdk-elf-"
+          cmake -S src/xbox360 \
+            -B build/src/xbox360 \
+            -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE="$HOME/xsdk/cmake/xsdk.cmake"
+
+          cmake --build build/src/xbox360
 
       - name: Upload Xbox 360 XEX
         uses: actions/upload-artifact@v4
         with:
-          name: Xbox360-Hello-World
-          path: /home/runner/xsdk/build/samples/hello/hello.xex
+          name: J2ME-Loader-360
+          path: build/src/xbox360/j2me_loader_360.xex
           if-no-files-found: error
-
+          
