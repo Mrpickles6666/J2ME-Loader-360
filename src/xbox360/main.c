@@ -19,6 +19,7 @@ static uint32_t game_count = 0;
 
 static uint32_t selected_game = 0;
 static bool selection_confirmed = false;
+static uint16_t previous_buttons = 0;
 
 static bool is_jar(const char *name)
 {
