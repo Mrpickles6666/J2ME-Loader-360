@@ -110,7 +110,13 @@ int main(void)
 
         xsdk_gpu_set_target(width, height);
 
-        xsdk_text_draw(
+xsdk_gpu_resolve(
+    address, width, height, 0xFF101020
+);
+
+xsdk_gpu_set_target(width, height);
+
+xsdk_text_draw(
             40, 35, 2, 0xFFFFFFFF,
             "J2ME-LOADER-360"
         );
