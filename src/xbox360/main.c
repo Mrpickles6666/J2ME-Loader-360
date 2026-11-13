@@ -20,7 +20,6 @@ static uint32_t game_count = 0;
 static uint32_t selected_game = 0;
 static bool selection_confirmed = false;
 static uint16_t previous_buttons = 0;
-static uint16_t current_buttons = 0;
 
 static bool is_jar(const char *name)
 {
@@ -102,7 +101,6 @@ int main(void)
 
         if (XamInputGetState(0, 0, &input) == ERROR_SUCCESS) {
             uint16_t buttons = input.gamepad.buttons;
-            current_buttons = buttons;
 
             if (game_count > 0) {
                 if ((buttons & INPUT_GAMEPAD_DPAD_DOWN) &&
@@ -165,17 +163,6 @@ int main(void)
             40, 175, 1, 0xFFFFFF00, status
         );
 
-        char debug[80];
-
-        snprintf(debug, sizeof(debug),
-         "BTN: 0x%04X  A FLAG: %u",
-         current_buttons,
-         selection_confirmed ? 1 : 0);
-
-        xsdk_text_draw(
-            40, 195, 1, 0xFFFFFFFF, debug
-        );
-
         if (selection_confirmed && game_count > 0) {
             char message[100];
 
@@ -189,7 +176,7 @@ int main(void)
 
         if (game_count == 0) {
             xsdk_text_draw(
-                40, 225, 1, 0xFFFF8080,
+                40, 245, 1, 0xFFFF8080,
                 "NO JAR FILES FOUND"
             );
         }
@@ -205,7 +192,7 @@ int main(void)
                 : 0xFFFFFFFF;
 
             xsdk_text_draw(
-                60, 225 + (int32_t)i * 24,
+                60, 245 + (int32_t)i * 24,
                 1, color, line
             );
         }
