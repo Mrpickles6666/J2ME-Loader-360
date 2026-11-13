@@ -18,8 +18,9 @@ static char games[MAX_GAMES][GAME_NAME_SIZE];
 static uint32_t game_count = 0;
 
 static uint32_t selected_game = 0;
-static bool selection_confirmed = false;
 static uint16_t previous_buttons = 0;
+
+static char action_message[120] = "PRESS A TO OPEN JAR";
 
 static bool is_jar(const char *name)
 {
@@ -70,6 +71,36 @@ static void scan_games(void)
                    (unsigned)game_count);
 }
 
+static void open_selected_jar(void)
+{
+    if (game_count == 0)
+        return;
+
+    char path[160];
+
+    snprintf(path, sizeof(path),
+             "game:\\%s", games[selected_game]);
+
+    FILE *jar = fopen(path, "rb");
+
+    if (!jar) {
+        snprintf(action_message, sizeof(action_message),
+                 "ERROR OPENING: %.80s",
+                 games[selected_game]);
+
+        xsdk_log_write("J2ME: Failed to open selected JAR");
+        return;
+    }
+
+    fclose(jar);
+
+    snprintf(action_message, sizeof(action_message),
+             "JAR FILE OPENED: %.80s",
+             games[selected_game]);
+
+    xsdk_log_write("J2ME: JAR file opened successfully");
+}
+
 int main(void)
 {
     xsdk_log_write("J2ME-Loader-360 starting");
@@ -107,19 +138,24 @@ int main(void)
                     !(previous_buttons & INPUT_GAMEPAD_DPAD_DOWN)) {
                     if (selected_game < game_count - 1)
                         selected_game++;
+
+                    snprintf(action_message, sizeof(action_message),
+                             "PRESS A TO OPEN JAR");
                 }
 
                 if ((buttons & INPUT_GAMEPAD_DPAD_UP) &&
                     !(previous_buttons & INPUT_GAMEPAD_DPAD_UP)) {
                     if (selected_game > 0)
                         selected_game--;
+
+                    snprintf(action_message, sizeof(action_message),
+                             "PRESS A TO OPEN JAR");
                 }
             }
 
             if ((buttons & INPUT_GAMEPAD_A) &&
                 !(previous_buttons & INPUT_GAMEPAD_A)) {
-                if (game_count > 0)
-                    selection_confirmed = true;
+                open_selected_jar();
             }
 
             if (buttons & INPUT_GAMEPAD_BACK)
@@ -163,16 +199,22 @@ int main(void)
             40, 175, 1, 0xFFFFFF00, status
         );
 
-        if (selection_confirmed && game_count > 0) {
-            char message[100];
+        if (game_count > 0) {
+            char selected[120];
 
-            snprintf(message, sizeof(message),
-                     "SELECTED: %s", games[selected_game]);
+            snprintf(selected, sizeof(selected),
+                     "SELECTED: %.90s",
+                     games[selected_game]);
 
             xsdk_text_draw(
-                40, 205, 1, 0xFF80FF80, message
+                40, 205, 1, 0xFF80FF80, selected
             );
         }
+
+        xsdk_text_draw(
+            40, 230, 1, 0xFFFFFF00,
+            action_message
+        );
 
         if (game_count == 0) {
             xsdk_text_draw(
@@ -192,14 +234,14 @@ int main(void)
                 : 0xFFFFFFFF;
 
             xsdk_text_draw(
-                60, 245 + (int32_t)i * 24,
+                60, 265 + (int32_t)i * 24,
                 1, color, line
             );
         }
 
         xsdk_text_draw(
             40, height - 45, 1, 0xFFAAAAAA,
-            "BACK: EXIT"
+            "A: OPEN JAR   BACK: EXIT"
         );
 
         xsdk_gpu_resolve(
